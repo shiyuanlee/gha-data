@@ -18,6 +18,8 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      script-file: ${{ steps.aux982212121212.outputs.script-file-name }}
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -25,13 +27,17 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build
+      - name: publish JS filename
+        id: aux982212121212
+        run: find dist/assets/*.js -type f -execdir echo 'script-file-name={}' >> $GITHUB_OUTPUT ';'
       - name: upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: dist-files
-          path: |
-            public
-            package.json
+          path: dist
+          # path: |
+          #   dist
+          #   package.json
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -42,5 +48,7 @@ jobs:
           name: dist-files
       - name: output downloaded contents
         run: ls
+      - name: output filename
+        run: echo '${{ needs.build.outputs.script-file }}'
       - name: Deploy
         run: echo "Deploying..."
